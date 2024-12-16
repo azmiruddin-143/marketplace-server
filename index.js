@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
 const port = process.env.PORT || 9000
@@ -37,26 +37,63 @@ async function run() {
     const database = client.db("jobsBD");
     const marketPlaceCollection = database.collection("jobs");
 
-    app.get("/jobs", async (req,res) =>{
+
+    app.get("/jobs", async (req, res) => {
       const cursor = marketPlaceCollection.find();
       const result = await cursor.toArray()
       res.send(result)
     })
 
+
     app.post("/jobs", async (req, res) => {
       const jobBody = req.body
       const result = marketPlaceCollection.insertOne(jobBody)
-      res.send(result) 
+      res.send(result)
     })
 
-    app.get("/jobs/:email", async (req,res) =>{
-        const email = req.params.email
-        const query = {email : email};
-        const result = marketPlaceCollection.find(query).toArray();
-        res.send(result)
+    app.get("/jobsingle/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) };
+      const result = await marketPlaceCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.get("/jobs/:email", async (req, res) => {
+      const email = req.params.email
+      console.log(req.params.email);
+      const query = { email: email };
+      const result = await marketPlaceCollection.find(query).toArray();
+      res.send(result)
     })
 
 
+
+
+
+    // dilet//
+
+    app.delete("/jobs/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) };
+      const result = await marketPlaceCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    //  update ///
+
+
+    app.put("/jobsingle/:id", async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const upBody = req.body
+      const updateDoc = {
+        $set: 
+          upBody
+      };
+      const result = await marketPlaceCollection.updateOne(filter, updateDoc, options);
+      res.send(result)
+    })
 
 
 
